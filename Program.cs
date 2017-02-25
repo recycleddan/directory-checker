@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace directory_checker
 {
@@ -17,19 +14,21 @@ namespace directory_checker
             if(args.Length < 2)
             {
                 // TODO: Print usage
+                Console.WriteLine("directory-checker <digest> <directory>");
+                return;
             }
 
-            var archivePath = args[0];
+            var digestPath = args[0];
             var candidatePath = args[1];
 
-            var sha = new SHA256Managed();
+            var md5 = MD5.Create();
 
-            foreach(var file in Directory.EnumerateFiles(archivePath, "*.*", SearchOption.AllDirectories))
+            using (var fs = new StreamReader(digestPath))
             {
-                using (var fs = File.OpenRead(file))
+                string line;
+                while((line = fs.ReadLine()) != null)
                 {
-                    var checksum = sha.ComputeHash(fs);
-                    archiveHashes.Add(BitConverter.ToString(checksum).Replace("-", string.Empty).ToLower());
+                    archiveHashes.Add(line);
                 }
             }
 
@@ -37,7 +36,7 @@ namespace directory_checker
             {
                 using (var fs = File.OpenRead(file))
                 {
-                    var checksum = sha.ComputeHash(fs);
+                    var checksum = md5.ComputeHash(fs);
                     if (!archiveHashes.Contains(BitConverter.ToString(checksum).Replace("-", string.Empty).ToLower()))
                     {
                         Console.WriteLine(file);
